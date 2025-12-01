@@ -22,7 +22,10 @@ class PPTController:
         self.presentation.SlideShowWindow.View.GotoSlide(slide_index)
 
     def end_show(self):
-        self.presentation.SlideShowWindow.View.End()
+        window = self.presentation.SlideShowWindow
+        if window is not None:
+            window.View.Exit()  
+
 
     def close(self):
         self.app.Quit()

@@ -1,5 +1,7 @@
 .venv
 .vscode
 
+pptx_module/*.json
+pptx_module/*.pptx
 
-*.pptx
+__pycache__
