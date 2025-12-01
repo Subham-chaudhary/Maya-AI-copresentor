@@ -94,36 +94,76 @@ class TestRunner:
         print(Fore.CYAN +    f"  Status:      " + status_color + Style.BRIGHT + status_text)
         print(Fore.CYAN + Style.BRIGHT + "="*60 + "\n")
 
+# --- Helper for user input ---
+def _get_user_choice(prompt):
+    """
+    Prompts the user for a 'y' or 'n' choice and returns the validated input.
+    """
+    while True:
+        choice = input(Fore.YELLOW + Style.BRIGHT + f"\n  ❓ {prompt} (y/n): ").lower().strip()
+        if choice in ['y', 'n']:
+            return choice
+        else:
+            print(Fore.RED + "  Invalid input. Please enter 'y' or 'n'.")
+
 # --- Main Test Execution ---
 
 def main():
     runner = TestRunner()
     runner.print_banner()
-    
-    # Clean up previous runs
-    if os.path.exists(TEST_FILE_NAME):
-        os.remove(TEST_FILE_NAME)
-    if os.path.exists(JSON_OUTPUT_NAME):
-        os.remove(JSON_OUTPUT_NAME)
+
+    # Pre-check for existing files and user interaction
+    files_to_check = [TEST_FILE_NAME, JSON_OUTPUT_NAME]
+    existing_files = [f for f in files_to_check if os.path.exists(f)]
+
+    skip_creation_test = False # Initialize flag
+
+    if existing_files:
+        runner.log_info(Fore.YELLOW + Style.BRIGHT + "Pre-existing test files detected:")
+        for f in existing_files:
+            runner.log_info(f"  - {f}")
+        
+        choice = _get_user_choice("Do you want to delete these files to ensure a clean test environment?")
+        
+        if choice == 'y':
+            runner.log_info("Deleting pre-existing files...")
+            for f in existing_files:
+                try:
+                    os.remove(f)
+                    runner.log_info(f"  Deleted '{f}'.")
+                except OSError as e:
+                    runner.log_fail(f"Error deleting '{f}'. Cannot proceed cleanly.", e)
+                    sys.exit(1) # Critical error, cannot proceed cleanly
+            runner.log_info("Files deleted. Proceeding with full test suite.")
+        else: # User chose 'n'
+            runner.log_info(Fore.YELLOW + "User chose to keep existing files. Skipping the PPT creation test.")
+            runner.log_info("Proceeding with parsing and controller tests using the existing files.")
+            skip_creation_test = True
 
     # 1. PPT Creation Test
-    runner.log_section("Testing PPT Creation")
-    absolute_path = os.path.abspath(TEST_FILE_NAME)
-    
-    try:
-        runner.log_info(f"Initializing PPTCreator with {TEST_FILE_NAME}...")
-        creator = PPTCreator(TEST_FILE_NAME)
-        creator.main()
+    if not skip_creation_test:
+        runner.log_section("Testing PPT Creation")
+        absolute_path = os.path.abspath(TEST_FILE_NAME)
         
-        if os.path.exists(TEST_FILE_NAME):
-            runner.log_success(f"File '{TEST_FILE_NAME}' created successfully.")
-        else:
-            runner.log_fail(f"File '{TEST_FILE_NAME}' was not found after creation.")
-            return # Exit if creation fails
+        try:
+            runner.log_info(f"Initializing PPTCreator with {TEST_FILE_NAME}...")
+            creator = PPTCreator(TEST_FILE_NAME)
+            creator.main()
             
-    except Exception as e:
-        runner.log_fail("Exception during PPT Creation", e)
-        return
+            if os.path.exists(TEST_FILE_NAME):
+                runner.log_success(f"File '{TEST_FILE_NAME}' created successfully.")
+            else:
+                runner.log_fail(f"File '{TEST_FILE_NAME}' was not found after creation.")
+                return # Exit if creation fails
+                
+        except Exception as e:
+            runner.log_fail("Exception during PPT Creation", e)
+            return
+    else:
+        runner.log_section("PPT Creation Skipped")
+        absolute_path = os.path.abspath(TEST_FILE_NAME) # Still need this for later steps
+        runner.log_info(f"Using pre-existing file '{TEST_FILE_NAME}' for subsequent tests.")
+
 
     # 2. PPT Parsing Test
     runner.log_section("Testing PPT Parsing")

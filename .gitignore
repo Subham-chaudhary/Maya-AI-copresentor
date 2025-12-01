@@ -1,7 +1,17 @@
-.venv
-.vscode
-
 pptx_module/*.json
 pptx_module/*.pptx
+*.wav
+.env
 
-__pycache__
+.venv/
+venv/
+env/
+
+.vscode/
+.idea/
+*.swp
+
+__pycache__/
+*.pyc
+dist/
+build/

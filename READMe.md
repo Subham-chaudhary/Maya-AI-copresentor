@@ -27,6 +27,8 @@ This project aims to build a full real-time AI Co-Presenter capable of:
 
 This is a modular and scalable system designed to run locally on Windows and integrate tightly with presentation tools. (Its still in development)
 
+[View the high-level flow diagram for the project](https://claude.ai/public/artifacts/5d69aefb-5e6a-4b6c-897d-7653d53f9d5f)
+
 ---
 
 ## Core Modules (High-Level)
